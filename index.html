@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>BarryVPN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary-color: #ff7a00;
+            --bg-color: #000000;
+            --card-bg: #1e1e1e;
+            --border-color: #333333;
+            --text-color: #ffffff;
+            --text-secondary: #aaaaaa;
+            --success-color: #00ff00;
+            --button-height: 48px;
+            --header-height: 56px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 16px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Telegram Web App адаптация */
+        @media (max-width: 500px) {
+            body {
+                height: 100dvh;
+            }
+        }
+
+        .screen {
+            display: none;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: var(--header-height);
+            padding: 0 var(--spacing-md);
+            background: var(--bg-color);
+            position: relative;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .header-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-md);
+            padding-bottom: calc(var(--spacing-md) + 30px);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        /* Logo Section */
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-lg) var(--spacing-md);
+        }
+
+        .logo-section h2 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff7a00 0%, #ff4d00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+
+        .logo-section p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* Subscription Card */
+        .subscription-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .subscription-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .subscription-card .title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .subscription-card .duration {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        /* Devices Section */
+        .devices-section {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .devices-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .devices-empty {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-top: var(--spacing-md);
+        }
+
+        /* Countries Section */
+        .countries-section {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .countries-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .country-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .country-item:last-child {
+            border-bottom: none;
+        }
+
+        .country-flag {
+            font-size: 20px;
+            margin-right: var(--spacing-sm);
+        }
+
+        .country-name {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .country-status {
+            font-size: 14px;
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        /* Button */
+        .action-button {
+            background: linear-gradient(135deg, #ff7a00 0%, #ff4d00 100%);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-md);
+            height: var(--button-height);
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 122, 0, 0.4);
+            transition: var(--transition);
+            margin: var(--spacing-md) 0;
+            padding: 0 var(--spacing-md);
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 122, 0, 0.5);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(255, 122, 0, 0.4);
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            padding: var(--spacing-md);
+            margin-top: auto;
+        }
+
+        /* ===== SECOND SCREEN ===== */
+
+        /* OS Selection */
+        .os-selection {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .os-selection::-webkit-scrollbar {
+            display: none;
+        }
+
+        .os-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .os-button:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .os-button:active:not(.active) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.98);
+        }
+
+        .os-button.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            transform: none;
+        }
+
+        /* Steps */
+        .step {
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .step:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-top: var(--spacing-sm);
+        }
+
+        .alt-link {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: var(--spacing-sm);
+            transition: var(--transition);
+        }
+
+        .alt-link:hover {
+            opacity: 0.8;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .screen.active .subscription-card,
+        .screen.active .devices-section,
+        .screen.active .countries-section {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .screen.active .subscription-card { animation-delay: 0.1s; }
+        .screen.active .devices-section { animation-delay: 0.2s; }
+        .screen.active .countries-section { animation-delay: 0.3s; }
+
+        /* Adapтивность */
+        @media (max-width: 480px) {
+            :root {
+                --spacing-sm: 6px;
+                --spacing-md: 12px;
+                --spacing-lg: 18px;
+                --button-height: 44px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .logo-section h2 {
+                font-size: 24px;
+            }
+
+            .subscription-card .duration {
+                font-size: 20px;
+            }
+
+            .action-button {
+                font-size: 15px;
+            }
+
+            .step-number {
+                width: 24px;
+                height: 24px;
+                font-size: 13px;
+            }
+
+            .step-title {
+                font-size: 15px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            :root {
+                --spacing-md: 20px;
+                --spacing-lg: 28px;
+            }
+
+            .header {
+                padding: 0 var(--spacing-lg);
+            }
+
+            .content {
+                padding: var(--spacing-lg);
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .action-button {
+                max-width: 400px;
+                margin: var(--spacing-lg) auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Первый экран -->
+    <div class="screen screen1 active">
+        <div class="header">
+            <h1>BarryVPN</h1>
+            <div style="display: flex; gap: 8px;">
+                <button class="header-btn menu-btn">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <button class="header-btn close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="logo-section">
+                <h2>Barry VPN</h2>
+            </div>
+
+            <div class="subscription-card">
+                <h3>ОСНОВНАЯ ПОДПИСКА</h3>
+                <div class="title">7 / ∞ дн.</div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value">0 Б</div>
+                        <div>Трафик</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">1</div>
+                        <div>Устройство</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">3</div>
+                        <div>Страны</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="countries-section">
+                <h3>СТРАНЫ</h3>
+                <div class="country-item">
+                    <div style="display: flex; align-items: center;">
+                        <span class="country-flag">🇳🇱</span>
+                        <span class="country-name">Нидерланды</span>
+                    </div>
+                    <span class="country-status">Доступна</span>
+                </div>
+                <div class="country-item">
+                    <div style="display: flex; align-items: center;">
+                        <span class="country-flag">🇫🇮</span>
+                        <span class="country-name">Финляндия</span>
+                    </div>
+                    <span class="country-status">Доступна</span>
+                </div>
+                <div class="country-item">
+                    <div style="display: flex; align-items: center;">
+                        <span class="country-flag">🇨🇿</span>
+                        <span class="country-name">Чехия</span>
+                    </div>
+                    <span class="country-status">Доступна</span>
+                </div>
+            </div>
+
+            <button class="action-button" id="start-vpn">
+                Начать пользоваться VPN
+            </button>
+
+            <div class="footer">
+                @DEDFREEVPN_bot
+            </div>
+        </div>
+    </div>
+
+    <!-- Второй экран -->
+    <div class="screen screen2">
+        <div class="header">
+            <button class="header-btn back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1>BarryVPN</h1>
+            <div style="display: flex; gap: 8px;">
+                <button class="header-btn menu-btn">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <button class="header-btn close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="subscription-card">
+                <h3>ПОДКЛЮЧИТЬ УСТРОЙСТВО</h3>
+                
+                <div class="os-selection">
+                    <button class="os-button" data-os="ios">
+                        <i class="fab fa-apple"></i> iOS
+                    </button>
+                    <button class="os-button" data-os="android">
+                        <i class="fab fa-android"></i> Android
+                    </button>
+                    <button class="os-button active" data-os="windows">
+                        <i class="fab fa-windows"></i> Windows
+                    </button>
+                    <button class="os-button" data-os="macos">
+                        <i class="fab fa-apple"></i> macOS
+                    </button>
+                </div>
+
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Нажмите кнопку ниже и установите приложение</div>
+                    </div>
+                    <button class="action-button" id="download-btn">
+                        Скачать приложение
+                    </button>
+                </div>
+
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Нажмите кнопку ниже и приложение автоматически добавит подписку</div>
+                    </div>
+                    <button class="action-button" id="subscribe-btn">
+                        Добавить подписку
+                    </button>
+                    <div class="alt-link" id="alt-link">
+                        Альтернативное подключение
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Выберите наш сервис в приложении Happ и нажмите кнопку подключения</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                @DEDFREEVPN_bot
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Telegram WebApp SDK
+        const tg = window.Telegram?.WebApp;
+
+        // Инициализация
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            
+            // Настройка темы
+            document.body.style.backgroundColor = tg.backgroundColor || '#000000';
+            document.body.style.color = tg.textColor || '#ffffff';
+        }
+
+        // Переключение между экранами
+        document.getElementById('start-vpn').addEventListener('click', function() {
+            document.querySelector('.screen1').classList.remove('active');
+            document.querySelector('.screen2').classList.add('active');
+            
+            // Отправляем событие в бота
+            if (tg) {
+                tg.MainButton.hide();
+            }
+        });
+
+        // Кнопка назад
+        document.querySelector('.back-btn').addEventListener('click', function() {
+            document.querySelector('.screen2').classList.remove('active');
+            document.querySelector('.screen1').classList.add('active');
+        });
+
+        // Выбор ОС
+        document.querySelectorAll('.os-button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const os = this.dataset.os;
+                document.querySelectorAll('.os-button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Можно отправить в бота выбранную ОС
+                if (tg) {
+                    tg.sendData(JSON.stringify({ action: 'os_selected', os: os }));
+                }
+            });
+        });
+
+        // Кнопка скачать
+        document.getElementById('download-btn').addEventListener('click', function() {
+            const activeOs = document.querySelector('.os-button.active').dataset.os;
+            const downloadUrls = {
+                ios: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973',
+                android: 'https://play.google.com/store/apps/details?id=com.happproxy',
+                windows: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/setup-Happ.x64.exe',
+                macos: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973'
+            };
+            
+            const url = downloadUrls[activeOs];
+            
+            if (tg) {
+                tg.sendData(JSON.stringify({ 
+                    action: 'download', 
+                    os: activeOs,
+                    url: url
+                }));
+            }
+            
+            // Для теста показываем алерт
+            alert(`Скачивание для ${activeOs}\n${url}`);
+        });
+
+        // Кнопка подписка
+        document.getElementById('subscribe-btn').addEventListener('click', function() {
+            const activeOs = document.querySelector('.os-button.active').dataset.os;
+            
+            if (tg) {
+                tg.sendData(JSON.stringify({ 
+                    action: 'subscribe', 
+                    os: activeOs
+                }));
+            }
+            
+            alert(`Добавление подписки для ${activeOs}`);
+        });
+
+        // Альтернативное подключение
+        document.getElementById('alt-link').addEventListener('click', function() {
+            if (tg) {
+                tg.sendData(JSON.stringify({ action: 'alt_connect' }));
+            }
+            
+            alert('Альтернативное подключение');
+        });
+
+        // Кнопки меню и закрытия
+        document.querySelectorAll('.close-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (tg) {
+                    tg.close();
+                }
+            });
+        });
+
+        // Отправка данных при закрытии
+        window.addEventListener('beforeunload', function() {
+            if (tg) {
+                tg.sendData(JSON.stringify({ action: 'closed' }));
+            }
+        });
+    </script>
+</body>
+</html>
