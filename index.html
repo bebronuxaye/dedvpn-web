@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
-    <title>BarryVPN</title>
+    <title>DedVPN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -45,7 +45,6 @@
             position: relative;
         }
 
-        /* Telegram Web App адаптация */
         @media (max-width: 500px) {
             body {
                 height: 100dvh;
@@ -71,7 +70,6 @@
             pointer-events: all;
         }
 
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -113,7 +111,6 @@
             transform: scale(0.95);
         }
 
-        /* Content */
         .content {
             flex: 1;
             overflow-y: auto;
@@ -124,7 +121,6 @@
             gap: var(--spacing-md);
         }
 
-        /* Logo Section */
         .logo-section {
             display: flex;
             flex-direction: column;
@@ -150,7 +146,6 @@
             line-height: 1.5;
         }
 
-        /* Subscription Card */
         .subscription-card {
             background: var(--card-bg);
             border-radius: var(--border-radius-md);
@@ -178,7 +173,6 @@
             margin-bottom: var(--spacing-lg);
         }
 
-        /* Stats */
         .stats {
             display: flex;
             justify-content: space-between;
@@ -201,7 +195,6 @@
             margin-bottom: 4px;
         }
 
-        /* Devices Section */
         .devices-section {
             background: var(--card-bg);
             border-radius: var(--border-radius-md);
@@ -223,7 +216,6 @@
             margin-top: var(--spacing-md);
         }
 
-        /* Countries Section */
         .countries-section {
             background: var(--card-bg);
             border-radius: var(--border-radius-md);
@@ -266,7 +258,6 @@
             font-weight: 600;
         }
 
-        /* Button */
         .action-button {
             background: linear-gradient(135deg, #ff7a00 0%, #ff4d00 100%);
             color: white;
@@ -299,7 +290,6 @@
             transform: none;
         }
 
-        /* Footer */
         .footer {
             text-align: center;
             color: var(--text-secondary);
@@ -308,9 +298,6 @@
             margin-top: auto;
         }
 
-        /* ===== SECOND SCREEN ===== */
-
-        /* OS Selection */
         .os-selection {
             display: flex;
             gap: var(--spacing-sm);
@@ -355,7 +342,6 @@
             transform: none;
         }
 
-        /* Steps */
         .step {
             margin-bottom: var(--spacing-lg);
             padding-bottom: var(--spacing-lg);
@@ -415,7 +401,6 @@
             opacity: 0.8;
         }
 
-        /* Animations */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -437,7 +422,6 @@
         .screen.active .devices-section { animation-delay: 0.2s; }
         .screen.active .countries-section { animation-delay: 0.3s; }
 
-        /* Adapтивность */
         @media (max-width: 480px) {
             :root {
                 --spacing-sm: 6px;
@@ -536,6 +520,13 @@
                 </div>
             </div>
 
+            <div class="devices-section">
+                <h3>ПОДКЛЮЧИТЬ УСТРОЙСТВО</h3>
+                <div class="devices-empty">
+                    После того, как вы подключите устройство — они будут отображаться здесь
+                </div>
+            </div>
+
             <div class="countries-section">
                 <h3>СТРАНЫ</h3>
                 <div class="country-item">
@@ -566,7 +557,7 @@
             </button>
 
             <div class="footer">
-                @DEDFREEVPN_bot
+                @DEDVPNFREE_bot
             </div>
         </div>
     </div>
@@ -577,7 +568,7 @@
             <button class="header-btn back-btn">
                 <i class="fas fa-arrow-left"></i>
             </button>
-            <h1>BarryVPN</h1>
+            <h1>DedVPN</h1>
             <div style="display: flex; gap: 8px;">
                 <button class="header-btn menu-btn">
                     <i class="fas fa-ellipsis-v"></i>
@@ -639,7 +630,7 @@
             </div>
 
             <div class="footer">
-                @DEDFREEVPN_bot
+                @DEDVPNFREE_bot
             </div>
         </div>
     </div>
@@ -663,7 +654,6 @@
             document.querySelector('.screen1').classList.remove('active');
             document.querySelector('.screen2').classList.add('active');
             
-            // Отправляем событие в бота
             if (tg) {
                 tg.MainButton.hide();
             }
@@ -682,40 +672,21 @@
                 document.querySelectorAll('.os-button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 
-                // Можно отправить в бота выбранную ОС
                 if (tg) {
                     tg.sendData(JSON.stringify({ action: 'os_selected', os: os }));
                 }
             });
         });
 
-        // Кнопка скачать
-// Найдите этот блок (примерно строка 280-290)
-document.querySelector('.btn').addEventListener('click', function() {
-    const activeOs = document.querySelector('.os-btn.active').textContent;
-    let downloadUrl = '';
-    
-    switch(activeOs) {
-        case 'iOS':
-            downloadUrl = 'https://barryvpn.com/download/ios';
-            break;
-        case 'Android':
-            downloadUrl = 'https://barryvpn.com/download/android';
-            break;
-        case 'Windows':
-            downloadUrl = 'https://barryvpn.com/download/windows';
-            break;
-        case 'macOS':
-            downloadUrl = 'https://barryvpn.com/download/macos';
-            break;
-    }
-    
-    // ЗАМЕНИТЕ ЭТОТ КОД:
-    alert(`Скачивание для ${activeOs}\n${downloadUrl}`);
-    
-    // НА ЭТОТ:
-    window.location.href = downloadUrl;
-});
+        // Кнопка скачать - МГНОВЕННОЕ ПЕРЕНАПРАВЛЕНИЕ БЕЗ ПОКАЗА ССЫЛКИ
+        document.getElementById('download-btn').addEventListener('click', function() {
+            const activeOs = document.querySelector('.os-button.active').dataset.os;
+            const downloadUrls = {
+                 ios: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973',
+                android: 'https://play.google.com/store/apps/details?id=com.happproxy',
+                windows: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/setup-Happ.x64.exe',
+                macos: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973'
+            };
             
             const url = downloadUrls[activeOs];
             
@@ -727,8 +698,8 @@ document.querySelector('.btn').addEventListener('click', function() {
                 }));
             }
             
-            // Для теста показываем алерт
-            alert(`Скачивание для ${activeOs}\n${url}`);
+            // МГНОВЕННОЕ ПЕРЕНАПРАВЛЕНИЕ БЕЗ ПОКАЗА ССЫЛКИ
+            window.location.href = url;
         });
 
         // Кнопка подписка
@@ -742,7 +713,8 @@ document.querySelector('.btn').addEventListener('click', function() {
                 }));
             }
             
-            alert(`Добавление подписки для ${activeOs}`);
+            // Мгновенное перенаправление на подписку
+            window.location.href = 'https://bebronuxaye.github.io/dedvpn-web/';
         });
 
         // Альтернативное подключение
@@ -751,26 +723,17 @@ document.querySelector('.btn').addEventListener('click', function() {
                 tg.sendData(JSON.stringify({ action: 'alt_connect' }));
             }
             
-            alert('Альтернативное подключение');
+            window.location.href = 'https://bebronuxaye.github.io/dedvpn-web/';
         });
 
         // Кнопки меню и закрытия
         document.querySelectorAll('.close-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                if (tg) {
+                if (tg && tg.close) {
                     tg.close();
                 }
             });
         });
-
-        // Отправка данных при закрытии
-        window.addEventListener('beforeunload', function() {
-            if (tg) {
-                tg.sendData(JSON.stringify({ action: 'closed' }));
-            }
-        });
     </script>
 </body>
-
 </html>
-
