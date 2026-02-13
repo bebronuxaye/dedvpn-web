@@ -510,16 +510,11 @@
                         <div>Трафик</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">1</div>
-                        <div>Устройство</div>
-                    </div>
-                    <div class="stat-item">
                         <div class="stat-value">3</div>
                         <div>Страны</div>
                     </div>
                 </div>
             </div>
-
 
             <div class="countries-section">
                 <h3>СТРАНЫ</h3>
@@ -672,14 +667,16 @@
             });
         });
 
-        // Кнопка скачать - МГНОВЕННОЕ ПЕРЕНАПРАВЛЕНИЕ БЕЗ ПОКАЗА ССЫЛКИ
+        // Кнопка скачать - ПЕРЕНАПРАВЛЕНИЕ В ЗАВИСИМОСТИ ОТ ВЫБРАННОЙ ОС
         document.getElementById('download-btn').addEventListener('click', function() {
             const activeOs = document.querySelector('.os-button.active').dataset.os;
+            
+            // Ссылки для каждой ОС
             const downloadUrls = {
-                 ios: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973',
+              ios: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973',
                 android: 'https://play.google.com/store/apps/details?id=com.happproxy',
                 windows: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/setup-Happ.x64.exe',
-                macos: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973'
+                macos: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973
             };
             
             const url = downloadUrls[activeOs];
@@ -692,13 +689,17 @@
                 }));
             }
             
-            // МГНОВЕННОЕ ПЕРЕНАПРАВЛЕНИЕ БЕЗ ПОКАЗА ССЫЛКИ
+            // МГНОВЕННОЕ ПЕРЕНАПРАВЛЕНИЕ
             window.location.href = url;
         });
 
-        // Кнопка подписка
+        // Кнопка подписка - ПОДКЛЮЧЕНИЕ ЧЕРЕЗ HAPP
         document.getElementById('subscribe-btn').addEventListener('click', function() {
             const activeOs = document.querySelector('.os-button.active').dataset.os;
+            
+            // Ссылка для подключения через Happ
+            // happ://subscribe?url=ваша_ссылка_на_конфиг
+            const happSubscribeUrl = 'happ://subscribe?url=https://your-server.com/config.ovpn';
             
             if (tg) {
                 tg.sendData(JSON.stringify({ 
@@ -707,8 +708,8 @@
                 }));
             }
             
-            // Мгновенное перенаправление на подписку
-            window.location.href = 'https://bebronuxaye.github.io/dedvpn-web/';
+            // Мгновенное перенаправление через Happ
+            window.location.href = happSubscribeUrl;
         });
 
         // Альтернативное подключение
@@ -717,6 +718,7 @@
                 tg.sendData(JSON.stringify({ action: 'alt_connect' }));
             }
             
+            // Альтернативная ссылка для подписки
             window.location.href = 'https://bebronuxaye.github.io/dedvpn-web/';
         });
 
@@ -731,4 +733,3 @@
     </script>
 </body>
 </html>
-
