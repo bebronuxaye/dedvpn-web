@@ -636,61 +636,81 @@
         </div>
     </div>
 
-    <script>
-        // Ждем полной загрузки страницы
+   <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Telegram WebApp SDK
             const tg = window.Telegram?.WebApp;
 
-            // Инициализация
             if (tg) {
                 tg.ready();
                 tg.expand();
-                
-                // Настройка темы
                 document.body.style.backgroundColor = tg.backgroundColor || '#000000';
                 document.body.style.color = tg.textColor || '#ffffff';
             }
 
-            // Переключение между экранами
+            // Вспомогательная функция для безопасного открытия ссылок на мобильных
+            function openUrlSafely(url) {
+                // Создаем невидимую ссылку и программно кликаем по ней
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                
+                // Для Happ-ссылок используем особый подход
+                if (url.startsWith('happ://')) {
+                    // Сначала пытаемся открыть через location.href
+                    try {
+                        window.location.href = url;
+                    } catch (e) {
+                        console.log('Happ redirect failed, trying fallback');
+                    }
+                    
+                    // Даем время на открытие Happ, затем показываем резервную ссылку
+                    setTimeout(() => {
+                        if (!document.hidden && tg) {
+                            tg.showAlert('Если приложение Happ не открылось, установите его из магазина.');
+                        }
+                    }, 1500);
+                    
+                    return;
+                }
+                
+                // Для обычных ссылок используем клик по ссылке
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
             document.getElementById('start-vpn').addEventListener('click', function() {
                 document.querySelector('.screen1').classList.remove('active');
                 document.querySelector('.screen2').classList.add('active');
-                
-                if (tg) {
-                    tg.MainButton.hide();
-                }
+                if (tg) tg.MainButton.hide();
             });
 
-            // Кнопка назад
             document.querySelector('.back-btn').addEventListener('click', function() {
                 document.querySelector('.screen2').classList.remove('active');
                 document.querySelector('.screen1').classList.add('active');
             });
 
-            // Выбор ОС
             document.querySelectorAll('.os-button').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const os = this.dataset.os;
                     document.querySelectorAll('.os-button').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    
                     if (tg) {
                         tg.sendData(JSON.stringify({ action: 'os_selected', os: os }));
                     }
                 });
             });
 
-            // Кнопка скачать - ПЕРЕНАПРАВЛЕНИЕ В ЗАВИСИМОСТИ ОТ ВЫБРАННОЙ ОС
+            // ИСПРАВЛЕННЫЙ ОБРАБОТЧИК СКАЧИВАНИЯ (работает на Android!)
             document.getElementById('download-btn').addEventListener('click', function() {
                 const activeOs = document.querySelector('.os-button.active').dataset.os;
                 
-                // Ссылки для каждой ОС (БЕЗ лишних пробелов!)
                 const downloadUrls = {
-                    ios: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973',
-                    android: 'https://play.google.com/store/apps/details?id=com.happproxy',
+                    ios: 'https://apps.apple.com/app/happ-proxy/id6446050905',
+                    android: 'https://play.google.com/store/apps/details?id=com.happ.proxy',
                     windows: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/setup-Happ.x64.exe',
-                    macos: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973'
+                    macos: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/Happ.dmg'
                 };
                 
                 const url = downloadUrls[activeOs];
@@ -703,15 +723,13 @@
                     }));
                 }
                 
-                // МГНОВЕННОЕ ПЕРЕНАПРАВЛЕНИЕ
-                window.location.href = url;
+                // ИСПРАВЛЕНИЕ ДЛЯ ANDROID: безопасное открытие ссылки
+                openUrlSafely(url);
             });
 
-            // Кнопка подписка - ПОДКЛЮЧЕНИЕ ЧЕРЕЗ HAPP
+            // ИСПРАВЛЕННЫЙ ОБРАБОТЧИК ПОДПИСКИ
             document.getElementById('subscribe-btn').addEventListener('click', function() {
                 const activeOs = document.querySelector('.os-button.active').dataset.os;
-                
-                // Ссылка для подключения через Happ (БЕЗ лишних пробелов!)
                 const happSubscribeUrl = 'happ://subscribe?url=https://your-server.com/config.ovpn';
                 
                 if (tg) {
@@ -721,21 +739,17 @@
                     }));
                 }
                 
-                // Мгновенное перенаправление через Happ
-                window.location.href = happSubscribeUrl;
+                // ИСПРАВЛЕНИЕ ДЛЯ ANDROID: безопасное открытие Happ
+                openUrlSafely(happSubscribeUrl);
             });
 
-            // Альтернативное подключение
             document.getElementById('alt-link').addEventListener('click', function() {
                 if (tg) {
                     tg.sendData(JSON.stringify({ action: 'alt_connect' }));
                 }
-                
-                // Альтернативная ссылка для подписки (БЕЗ лишних пробелов!)
-                window.location.href = 'https://bebronuxaye.github.io/dedvpn-web/';
+                openUrlSafely('https://bebronuxaye.github.io/dedvpn-web/');
             });
 
-            // Кнопки меню и закрытия
             document.querySelectorAll('.close-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (tg && tg.close) {
@@ -747,4 +761,3 @@
     </script>
 </body>
 </html>
-
