@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
-    <title>DedVPN</title>
+    <title>BarryVPN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* ... ВСЕ СТИЛИ ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ ... */
         * {
             margin: 0;
             padding: 0;
@@ -484,7 +485,7 @@
     <!-- Первый экран -->
     <div class="screen screen1 active">
         <div class="header">
-            <h1>DedVPN</h1>
+            <h1>BarryVPN</h1>
             <div style="display: flex; gap: 8px;">
                 <button class="header-btn menu-btn">
                     <i class="fas fa-ellipsis-v"></i>
@@ -497,7 +498,7 @@
 
         <div class="content">
             <div class="logo-section">
-                <h2>Ded VPN</h2>
+                <h2>Barry VPN</h2>
             </div>
 
             <div class="subscription-card">
@@ -510,9 +511,20 @@
                         <div>Трафик</div>
                     </div>
                     <div class="stat-item">
+                        <div class="stat-value">1</div>
+                        <div>Устройство</div>
+                    </div>
+                    <div class="stat-item">
                         <div class="stat-value">3</div>
                         <div>Страны</div>
                     </div>
+                </div>
+            </div>
+
+            <div class="devices-section">
+                <h3>ПОДКЛЮЧИТЬ УСТРОЙСТВО</h3>
+                <div class="devices-empty">
+                    После того, как вы подключите устройство — они будут отображаться здесь
                 </div>
             </div>
 
@@ -546,7 +558,7 @@
             </button>
 
             <div class="footer">
-                @DEDVPNFREE_bot
+                @BarryVPN_bot
             </div>
         </div>
     </div>
@@ -557,7 +569,7 @@
             <button class="header-btn back-btn">
                 <i class="fas fa-arrow-left"></i>
             </button>
-            <h1>DedVPN</h1>
+            <h1>BarryVPN</h1>
             <div style="display: flex; gap: 8px;">
                 <button class="header-btn menu-btn">
                     <i class="fas fa-ellipsis-v"></i>
@@ -619,115 +631,117 @@
             </div>
 
             <div class="footer">
-                @DEDVPNFREE_bot
+                @BarryVPN_bot
             </div>
         </div>
     </div>
 
     <script>
-        // Telegram WebApp SDK
-        const tg = window.Telegram?.WebApp;
+        // Ждем полной загрузки страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Telegram WebApp SDK
+            const tg = window.Telegram?.WebApp;
 
-        // Инициализация
-        if (tg) {
-            tg.ready();
-            tg.expand();
-            
-            // Настройка темы
-            document.body.style.backgroundColor = tg.backgroundColor || '#000000';
-            document.body.style.color = tg.textColor || '#ffffff';
-        }
-
-        // Переключение между экранами
-        document.getElementById('start-vpn').addEventListener('click', function() {
-            document.querySelector('.screen1').classList.remove('active');
-            document.querySelector('.screen2').classList.add('active');
-            
+            // Инициализация
             if (tg) {
-                tg.MainButton.hide();
+                tg.ready();
+                tg.expand();
+                
+                // Настройка темы
+                document.body.style.backgroundColor = tg.backgroundColor || '#000000';
+                document.body.style.color = tg.textColor || '#ffffff';
             }
-        });
 
-        // Кнопка назад
-        document.querySelector('.back-btn').addEventListener('click', function() {
-            document.querySelector('.screen2').classList.remove('active');
-            document.querySelector('.screen1').classList.add('active');
-        });
-
-        // Выбор ОС
-        document.querySelectorAll('.os-button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const os = this.dataset.os;
-                document.querySelectorAll('.os-button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+            // Переключение между экранами
+            document.getElementById('start-vpn').addEventListener('click', function() {
+                document.querySelector('.screen1').classList.remove('active');
+                document.querySelector('.screen2').classList.add('active');
                 
                 if (tg) {
-                    tg.sendData(JSON.stringify({ action: 'os_selected', os: os }));
+                    tg.MainButton.hide();
                 }
             });
-        });
 
-        // Кнопка скачать - ПЕРЕНАПРАВЛЕНИЕ В ЗАВИСИМОСТИ ОТ ВЫБРАННОЙ ОС
-        document.getElementById('download-btn').addEventListener('click', function() {
-            const activeOs = document.querySelector('.os-button.active').dataset.os;
-            
-            // Ссылки для каждой ОС
-            const downloadUrls = {
-              ios: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973',
-                android: 'https://play.google.com/store/apps/details?id=com.happproxy',
-                windows: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/setup-Happ.x64.exe',
-                macos: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973
-            };
-            
-            const url = downloadUrls[activeOs];
-            
-            if (tg) {
-                tg.sendData(JSON.stringify({ 
-                    action: 'download', 
-                    os: activeOs,
-                    url: url
-                }));
-            }
-            
-            // МГНОВЕННОЕ ПЕРЕНАПРАВЛЕНИЕ
-            window.location.href = url;
-        });
+            // Кнопка назад
+            document.querySelector('.back-btn').addEventListener('click', function() {
+                document.querySelector('.screen2').classList.remove('active');
+                document.querySelector('.screen1').classList.add('active');
+            });
 
-        // Кнопка подписка - ПОДКЛЮЧЕНИЕ ЧЕРЕЗ HAPP
-        document.getElementById('subscribe-btn').addEventListener('click', function() {
-            const activeOs = document.querySelector('.os-button.active').dataset.os;
-            
-            // Ссылка для подключения через Happ
-            // happ://subscribe?url=ваша_ссылка_на_конфиг
-            const happSubscribeUrl = 'happ://subscribe?url=https://your-server.com/config.ovpn';
-            
-            if (tg) {
-                tg.sendData(JSON.stringify({ 
-                    action: 'subscribe', 
-                    os: activeOs
-                }));
-            }
-            
-            // Мгновенное перенаправление через Happ
-            window.location.href = happSubscribeUrl;
-        });
+            // Выбор ОС
+            document.querySelectorAll('.os-button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const os = this.dataset.os;
+                    document.querySelectorAll('.os-button').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (tg) {
+                        tg.sendData(JSON.stringify({ action: 'os_selected', os: os }));
+                    }
+                });
+            });
 
-        // Альтернативное подключение
-        document.getElementById('alt-link').addEventListener('click', function() {
-            if (tg) {
-                tg.sendData(JSON.stringify({ action: 'alt_connect' }));
-            }
-            
-            // Альтернативная ссылка для подписки
-            window.location.href = 'https://bebronuxaye.github.io/dedvpn-web/';
-        });
-
-        // Кнопки меню и закрытия
-        document.querySelectorAll('.close-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (tg && tg.close) {
-                    tg.close();
+            // Кнопка скачать - ПЕРЕНАПРАВЛЕНИЕ В ЗАВИСИМОСТИ ОТ ВЫБРАННОЙ ОС
+            document.getElementById('download-btn').addEventListener('click', function() {
+                const activeOs = document.querySelector('.os-button.active').dataset.os;
+                
+                // Ссылки для каждой ОС (БЕЗ лишних пробелов!)
+                const downloadUrls = {
+                    ios: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973',
+                    android: 'https://play.google.com/store/apps/details?id=com.happproxy',
+                    windows: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/setup-Happ.x64.exe',
+                    macos: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973'
+                };
+                
+                const url = downloadUrls[activeOs];
+                
+                if (tg) {
+                    tg.sendData(JSON.stringify({ 
+                        action: 'download', 
+                        os: activeOs,
+                        url: url
+                    }));
                 }
+                
+                // МГНОВЕННОЕ ПЕРЕНАПРАВЛЕНИЕ
+                window.location.href = url;
+            });
+
+            // Кнопка подписка - ПОДКЛЮЧЕНИЕ ЧЕРЕЗ HAPP
+            document.getElementById('subscribe-btn').addEventListener('click', function() {
+                const activeOs = document.querySelector('.os-button.active').dataset.os;
+                
+                // Ссылка для подключения через Happ (БЕЗ лишних пробелов!)
+                const happSubscribeUrl = 'happ://subscribe?url=https://your-server.com/config.ovpn';
+                
+                if (tg) {
+                    tg.sendData(JSON.stringify({ 
+                        action: 'subscribe', 
+                        os: activeOs
+                    }));
+                }
+                
+                // Мгновенное перенаправление через Happ
+                window.location.href = happSubscribeUrl;
+            });
+
+            // Альтернативное подключение
+            document.getElementById('alt-link').addEventListener('click', function() {
+                if (tg) {
+                    tg.sendData(JSON.stringify({ action: 'alt_connect' }));
+                }
+                
+                // Альтернативная ссылка для подписки (БЕЗ лишних пробелов!)
+                window.location.href = 'https://bebronuxaye.github.io/dedvpn-web/';
+            });
+
+            // Кнопки меню и закрытия
+            document.querySelectorAll('.close-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (tg && tg.close) {
+                        tg.close();
+                    }
+                });
             });
         });
     </script>
