@@ -690,14 +690,32 @@
         });
 
         // Кнопка скачать
-        document.getElementById('download-btn').addEventListener('click', function() {
-            const activeOs = document.querySelector('.os-button.active').dataset.os;
-            const downloadUrls = {
-                ios: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973',
-                android: 'https://play.google.com/store/apps/details?id=com.happproxy',
-                windows: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/setup-Happ.x64.exe',
-                macos: 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973'
-            };
+// Найдите этот блок (примерно строка 280-290)
+document.querySelector('.btn').addEventListener('click', function() {
+    const activeOs = document.querySelector('.os-btn.active').textContent;
+    let downloadUrl = '';
+    
+    switch(activeOs) {
+        case 'iOS':
+            downloadUrl = 'https://barryvpn.com/download/ios';
+            break;
+        case 'Android':
+            downloadUrl = 'https://barryvpn.com/download/android';
+            break;
+        case 'Windows':
+            downloadUrl = 'https://barryvpn.com/download/windows';
+            break;
+        case 'macOS':
+            downloadUrl = 'https://barryvpn.com/download/macos';
+            break;
+    }
+    
+    // ЗАМЕНИТЕ ЭТОТ КОД:
+    alert(`Скачивание для ${activeOs}\n${downloadUrl}`);
+    
+    // НА ЭТОТ:
+    window.location.href = downloadUrl;
+});
             
             const url = downloadUrls[activeOs];
             
@@ -755,3 +773,4 @@
 </body>
 
 </html>
+
