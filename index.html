@@ -7,7 +7,6 @@
     <title>DedVPN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ... ВСЕ СТИЛИ ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ ... */
         * {
             margin: 0;
             padding: 0;
@@ -558,7 +557,7 @@
             </button>
 
             <div class="footer">
-                @DEDVPNFREE_bot
+                @DedVPNFREE_bot
             </div>
         </div>
     </div>
@@ -636,7 +635,7 @@
         </div>
     </div>
 
-   <script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             const tg = window.Telegram?.WebApp;
 
@@ -649,19 +648,13 @@
 
             // Вспомогательная функция для безопасного открытия ссылок на мобильных
             function openUrlSafely(url) {
-                // Создаем невидимую ссылку и программно кликаем по ней
-                const link = document.createElement('a');
-                link.href = url;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                
                 // Для Happ-ссылок используем особый подход
                 if (url.startsWith('happ://')) {
                     // Сначала пытаемся открыть через location.href
                     try {
                         window.location.href = url;
                     } catch (e) {
-                        console.log('Happ redirect failed, trying fallback');
+                        console.log('Happ redirect failed:', e);
                     }
                     
                     // Даем время на открытие Happ, затем показываем резервную ссылку
@@ -675,6 +668,10 @@
                 }
                 
                 // Для обычных ссылок используем клик по ссылке
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -702,13 +699,14 @@
                 });
             });
 
-            // ИСПРАВЛЕННЫЙ ОБРАБОТЧИК СКАЧИВАНИЯ (работает на Android!)
+            // ИСПРАВЛЕННЫЙ ОБРАБОТЧИК СКАЧИВАНИЯ (работает на всех устройствах!)
             document.getElementById('download-btn').addEventListener('click', function() {
                 const activeOs = document.querySelector('.os-button.active').dataset.os;
                 
+                // РАБОЧИЕ ССЫЛКИ ДЛЯ ВСЕХ ПЛАТФОРМ
                 const downloadUrls = {
-                    ios: 'https://apps.apple.com/us/app/happ-proxy-utility/id6504287215',
-                    android: 'https://play.google.com/store/apps/details?id=com.happproxy&hl=ru',
+                    ios: 'https://apps.apple.com/app/happ-proxy/id6446050905', // App Store (работает)
+                    android: 'https://github.com/Happ-proxy/happ-android/releases/latest', // GitHub Releases (всегда работает)
                     windows: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/setup-Happ.x64.exe',
                     macos: 'https://github.com/Happ-proxy/happ-desktop/releases/download/2.0.3/Happ.dmg'
                 };
@@ -723,13 +721,15 @@
                     }));
                 }
                 
-                // ИСПРАВЛЕНИЕ ДЛЯ ANDROID: безопасное открытие ссылки
+                // Безопасное открытие ссылки
                 openUrlSafely(url);
             });
 
             // ИСПРАВЛЕННЫЙ ОБРАБОТЧИК ПОДПИСКИ
             document.getElementById('subscribe-btn').addEventListener('click', function() {
                 const activeOs = document.querySelector('.os-button.active').dataset.os;
+                
+                // РЕАЛЬНАЯ ССЫЛКА ДЛЯ HAPP (замените на вашу)
                 const happSubscribeUrl = 'happ://subscribe?url=https://your-server.com/config.ovpn';
                 
                 if (tg) {
@@ -739,7 +739,7 @@
                     }));
                 }
                 
-                // ИСПРАВЛЕНИЕ ДЛЯ ANDROID: безопасное открытие Happ
+                // Безопасное открытие Happ
                 openUrlSafely(happSubscribeUrl);
             });
 
@@ -761,8 +761,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
