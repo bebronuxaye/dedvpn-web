@@ -644,246 +644,204 @@
             tg.expand();
             document.body.style.backgroundColor = tg.backgroundColor || '#000000';
             document.body.style.color = tg.textColor || '#ffffff';
+            tg.MainButton.hide();
         }
 
-        // Получение конфига из URL (с полной защитой)
+        // Получение конфига из URL (с защитой от двойного кодирования)
         function getConfigFromUrl() {
-            // Проверяем, есть ли конфиг в URL
             const params = new URLSearchParams(window.location.search);
             let config = params.get('config');
             
-            // Если конфиг найден, обрабатываем его
-            if (config) {
-                console.log('Конфиг найден в URL, исходное значение:', config);
-                
-                // Пытаемся раскодировать
+            if (!config) return null;
+            
+            // Декодируем до тех пор, пока есть признаки двойного кодирования (%25 = %)
+            while (config.includes('%25')) {
                 try {
-                    // Первое декодирование
-                    let decodedConfig = decodeURIComponent(config);
-                    
-                    // Проверяем, нужно ли второе декодирование
-                    if (decodedConfig.includes('%25')) {
-                        console.log('Обнаружено двойное кодирование. Декодируем ещё раз.');
-                        decodedConfig = decodeURIComponent(decodedConfig);
-                    }
-                    
-                    console.log('Результат декодирования:', decodedConfig);
-                    
-                    // Проверяем формат
-                    if (decodedConfig.startsWith('ss://')) {
-                        return decodedConfig.trim();
-                    }
+                    config = decodeURIComponent(config);
                 } catch (e) {
-                    console.error('Ошибка при декодировании:', e);
+                    break;
                 }
             }
             
-            // Если не получилось, пытаемся найти вручную
-            const match = window.location.search.match(/config=([^&]+)/);
-            if (match && match[1]) {
-                try {
-                    let decodedConfig = decodeURIComponent(match[1]);
-                    if (decodedConfig.startsWith('ss://')) {
-                        return decodedConfig.trim();
-                    }
-                } catch (e) {
-                    console.error('Ошибка при ручном декодировании:', e);
-                }
-            }
-            
-            return null;
-        }
-
-        // Открытие Happ
-        function openHappWithConfig(happUrl) {
-            console.log('Happ URL:', happUrl);
-            
+            // Финальное декодирование
             try {
-                window.location.href = happUrl;
-                return true;
+                config = decodeURIComponent(config);
             } catch (e) {
-                console.error('Ошибка при открытии Happ:', e);
+                // Если не декодируется — оставляем как есть
             }
             
-            return false;
+            return config.trim() || null;
         }
 
-        // Кнопка "Начать пользоваться VPN"
-        document.getElementById('start-vpn').addEventListener('click', function() {
-            document.querySelector('.screen1').classList.remove('active');
-            document.querySelector('.screen2').classList.add('active');
+        // Копирование текста в буфер обмена
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    return Promise.resolve();
+                } catch (e) {
+                    document.body.removeChild(textarea);
+                    return Promise.reject(e);
+                }
+            }
+        }
+
+        // Навигация
+        document.getElementById('start-vpn')?.addEventListener('click', function() {
+            document.querySelector('.screen1')?.classList.remove('active');
+            document.querySelector('.screen2')?.classList.add('active');
             if (tg) tg.MainButton.hide();
         });
 
-        // Кнопка "Назад"
-        document.querySelector('.back-btn').addEventListener('click', function() {
-            document.querySelector('.screen2').classList.remove('active');
-            document.querySelector('.screen1').classList.add('active');
+        document.querySelector('.back-btn')?.addEventListener('click', function() {
+            document.querySelector('.screen2')?.classList.remove('active');
+            document.querySelector('.screen1')?.classList.add('active');
+            if (tg) tg.MainButton.hide();
         });
 
         // Выбор ОС
         document.querySelectorAll('.os-button').forEach(btn => {
             btn.addEventListener('click', function() {
-                const os = this.dataset.os;
                 document.querySelectorAll('.os-button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 if (tg) {
-                    tg.sendData(JSON.stringify({ action: 'os_selected', os: os }));
+                    tg.sendData(JSON.stringify({ action: 'os_selected', os: this.dataset.os }));
                 }
             });
         });
 
         // Скачать приложение
-        document.getElementById('download-btn').addEventListener('click', function() {
-            const activeOs = document.querySelector('.os-button.active').dataset.os;
-            
-            const downloadUrls = {
+        document.getElementById('download-btn')?.addEventListener('click', function() {
+            const os = document.querySelector('.os-button.active').dataset.os;
+            const urls = {
                 ios: 'https://apps.apple.com/app/happ-proxy/id6446050905',
                 android: 'https://github.com/Happ-proxy/happ-android/releases/latest',
                 windows: 'https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe',
                 macos: 'https://github.com/Happ-proxy/happ-desktop/releases/latest/download/Happ.dmg'
             };
             
-            const url = downloadUrls[activeOs];
+            if (tg) {
+                // В Telegram открываем через встроенную функцию
+                tg.openLink(urls[os], { try_instant_view: false });
+            } else {
+                // В обычном браузере — стандартное открытие
+                const link = document.createElement('a');
+                link.href = urls[os];
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
             
             if (tg) {
-                tg.sendData(JSON.stringify({ 
-                    action: 'download', 
-                    os: activeOs,
-                    url: url
-                }));
+                tg.sendData(JSON.stringify({ action: 'download', os: os }));
             }
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         });
 
-        // 🔥 ОБРАБОТЧИК ПОДПИСКИ (с полной отладкой)
-        document.getElementById('subscribe-btn').addEventListener('click', function() {
-            const activeOs = document.querySelector('.os-button.active').dataset.os;
+        // 🔥 КНОПКА "ДОБАВИТЬ ПОДПИСКУ" (безопасный способ для Telegram)
+        document.getElementById('subscribe-btn')?.addEventListener('click', function() {
             const config = getConfigFromUrl();
+            console.log('Конфиг из URL:', config);
             
-            console.log('=== ПОДПИСКА ===');
-            console.log('Полученный конфиг:', config);
-            
-            // 🔴 КРИТИЧЕСКАЯ ПРОВЕРКА
-            if (!config) {
-                const errorMsg = '❌ Ошибка: конфиг не найден в URL!\n\n' + 
-                                '1. Проверьте, что бот правильно передаёт конфиг\n' +
-                                '2. Убедитесь, что URL содержит параметр config\n' +
-                                '3. Проверьте логи бота';
-                console.error('Конфиг не найден');
+            // Проверка конфига
+            if (!config || !config.startsWith('ss://')) {
+                const msg = config 
+                    ? `❌ Неверный формат конфига!\nПолучено: ${config.substring(0, 30)}...`
+                    : '❌ Конфиг не найден!\nНажмите кнопку в боте ещё раз.';
+                
                 if (tg) {
-                    tg.showAlert(errorMsg);
+                    tg.showAlert(msg);
                 } else {
-                    alert(errorMsg);
+                    alert(msg);
                 }
                 return;
             }
             
-            if (!config.startsWith('ss://')) {
-                const errorMsg = '❌ Ошибка: неверный формат конфига!\n\n' +
-                                'Получено: ' + config.substring(0, 50) + '...\n\n' +
-                                'Должно начинаться с "ss://"\n\n' +
-                                'Возможная причина: двойное кодирование конфига';
-                console.error('Неверный формат конфига');
-                if (tg) {
-                    tg.showAlert(errorMsg);
-                } else {
-                    alert(errorMsg);
-                }
-                return;
-            }
-            
-            // 🌍 СПИСОК СЕРВЕРОВ
+            // 🌍 Серверы для отображения в инструкции
             const servers = [
-                { country: "Netherlands", flag: "🇳🇱", status: "VLESS" },
-                { country: "Finland", flag: "🇫🇮", status: "VLESS" },
-                { country: "Czech Republic", flag: "🇨🇿", status: "VLESS" },
-                { country: "Poland", flag: "🇵🇱", status: "VLESS" },
-                { country: "Germany", flag: "🇩🇪", status: "VLESS" }
+                { flag: '🇳🇱', country: 'Netherlands' },
+                { flag: '🇫🇮', country: 'Finland' },
+                { flag: '🇨🇿', country: 'Czech Republic' },
+                { flag: '🇵🇱', country: 'Poland' },
+                { flag: '🇩🇪', country: 'Germany' }
             ];
             
-            // Информация для Happ
-            const name = "DedVPN";
-            const traffic = "0B/93.1GB";
-            const expiration = "20.02.2026";
+            // Формируем текст инструкции
+            let instruction = `🔐 DedVPN подключение:\n\n`;
+            instruction += `1️⃣ Установите Happ Proxy:\n`;
+            instruction += `   • Android: happ-android/releases\n`;
+            instruction += `   • iOS: Happ Proxy в App Store\n\n`;
+            instruction += `2️⃣ Скопируйте конфиг ниже 👇\n\n`;
+            instruction += `3️⃣ В Happ: Профиль → Импорт → Вставить\n\n`;
+            instruction += `🌍 Доступные локации:\n`;
+            servers.forEach(s => {
+                instruction += `   ${s.flag} ${s.country}\n`;
+            });
             
-            // Формируем список серверов
-            const serversList = servers.map(server => 
-                `${server.flag} ${server.country}\n${server.status}`
-            ).join('\n');
+            // Формируем полную ссылку для копирования
+            const fullUrl = `happ://subscribe?url=${encodeURIComponent(config)}#DedVPN%0A0B%2F93.1GB%0A20.02.2026%0A${encodeURIComponent(servers.map(s => `${s.flag} ${s.country}\nVLESS`).join('\n'))}`;
             
-            console.log('Список серверов:', serversList);
-            
-            // Кодируем для Happ
-            const encodedConfig = encodeURIComponent(config);
-            const encodedName = encodeURIComponent(name);
-            const encodedTraffic = encodeURIComponent(traffic);
-            const encodedExpiration = encodeURIComponent(expiration);
-            const encodedServers = encodeURIComponent(serversList);
-            
-            // Формируем финальную ссылку
-            const happUrl = `happ://subscribe?url=${encodedConfig}#${encodedName}%0A${encodedTraffic}%0A${encodedExpiration}%0A${encodedServers}`;
-            
-            console.log('Финальный Happ URL:', happUrl);
-            
-            // Отправляем данные в бот
-            if (tg) {
-                tg.sendData(JSON.stringify({ 
-                    action: 'subscribe', 
-                    os: activeOs,
-                    config: config,
-                    servers: servers
-                }));
-            }
-            
-            // Открываем Happ
-            const success = openHappWithConfig(happUrl);
-            
-            if (success) {
+            // Копируем ссылку в буфер обмена
+            copyToClipboard(fullUrl).then(() => {
                 if (tg) {
-                    tg.showAlert('✅ Открываем Happ... Подключитесь к серверу после импорта.');
+                    tg.showAlert('✅ Ссылка скопирована!\nОткройте Happ и вставьте её в Профиль → Импорт');
+                } else {
+                    alert('✅ Ссылка скопирована!\nОткройте Happ и вставьте её в Профиль → Импорт');
                 }
-            } else {
+                
+                // Отправляем данные в бот
                 if (tg) {
-                    tg.showAlert('⚠️ Happ не открылся. Убедитесь, что приложение установлено.');
+                    tg.sendData(JSON.stringify({ 
+                        action: 'subscribe_copied',
+                        config: config
+                    }));
                 }
-            }
-        });
-
-        // Альтернативное подключение
-        document.getElementById('alt-link').addEventListener('click', function() {
-            if (tg) {
-                tg.sendData(JSON.stringify({ action: 'alt_connect' }));
-            }
-            window.open('https://bebronuxaye.github.io/dedvpn-web/', '_blank');
-        });
-
-        // Закрытие Web App
-        document.querySelectorAll('.close-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (tg && tg.close) {
-                    tg.close();
+            }).catch(() => {
+                if (tg) {
+                    tg.showAlert('❌ Ошибка копирования. Попробуйте вручную:\n' + fullUrl.substring(0, 100) + '...');
+                } else {
+                    prompt('Скопируйте вручную:', fullUrl);
                 }
             });
         });
+
+        // Альтернативное подключение
+        document.getElementById('alt-link')?.addEventListener('click', function() {
+            if (tg) {
+                tg.sendData(JSON.stringify({ action: 'alt_connect' }));
+                tg.close();
+            } else {
+                window.open('https://bebronuxaye.github.io/dedvpn-web/', '_blank');
+            }
+        });
+
+        // Закрытие
+        document.querySelectorAll('.close-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (tg?.close) tg.close();
+            });
+        });
         
-        // 🔍 Отладка при загрузке
-        console.log('=== ОТЛАДКА ===');
-        console.log('Полный URL:', window.location.href);
-        console.log('Search params:', window.location.search);
-        console.log('Конфиг из URL:', getConfigFromUrl());
-        console.log('================');
+        // Отладка
+        console.log('=== DEBUG ===');
+        console.log('URL:', window.location.href);
+        console.log('Config:', getConfigFromUrl());
+        console.log('=============');
     });
 </script>
 </body>
 </html>
+
 
 
 
