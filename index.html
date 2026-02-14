@@ -635,7 +635,7 @@
         </div>
     </div>
 
-  <script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         const tg = window.Telegram?.WebApp;
 
@@ -646,45 +646,23 @@
             document.body.style.color = tg.textColor || '#ffffff';
         }
 
-        // Получение конфига из URL (с правильной обработкой кодировки)
+        // Получение конфига из URL
         function getConfigFromUrl() {
-            // Используем location.search напрямую для избежания двойного декодирования
-            const queryString = window.location.search.substring(1);
-            const params = new URLSearchParams(queryString);
-            let config = params.get('config');
-            
-            if (!config) {
-                // Альтернативный способ: парсим вручную
-                const match = queryString.match(/config=([^&]*)/);
-                if (match && match[1]) {
-                    config = decodeURIComponent(match[1].replace(/\+/g, ' '));
-                }
-            }
-            
-            return config ? config.trim() : null;
+            const params = new URLSearchParams(window.location.search);
+            return params.get('config')?.trim() || null;
         }
 
-        // Открытие Happ с правильным форматом ссылки
-        function openHappWithConfig(config) {
-            // Формат для Happ: happ://subscribe?url=СЫРАЯ_SS_ССЫЛКА_БЕЗ_КОДИРОВАНИЯ
-            // ВАЖНО: НЕ используем encodeURIComponent() для всего конфига!
-            // Happ ожидает: happ://subscribe?url=ss://...
-            
-            // Правильный формат: кодируем ТОЛЬКО спецсимволы внутри параметра
-            const encodedConfig = encodeURIComponent(config);
-            const happUrl = `happ://subscribe?url=${encodedConfig}`;
-            
+        // Открытие Happ с правильным форматом
+        function openHappWithConfig(happUrl) {
             console.log('Happ URL:', happUrl);
             
-            // Способ 1: Прямое перенаправление
             try {
                 window.location.href = happUrl;
                 return true;
             } catch (e) {
-                console.error('Способ 1 не сработал:', e);
+                console.error('Ошибка при открытии Happ:', e);
             }
             
-            // Способ 2: Создание скрытой ссылки
             try {
                 const link = document.createElement('a');
                 link.href = happUrl;
@@ -694,23 +672,26 @@
                 document.body.removeChild(link);
                 return true;
             } catch (e) {
-                console.error('Способ 2 не сработал:', e);
+                console.error('Ошибка при создании ссылки:', e);
             }
             
             return false;
         }
 
+        // Кнопка "Начать пользоваться VPN"
         document.getElementById('start-vpn').addEventListener('click', function() {
             document.querySelector('.screen1').classList.remove('active');
             document.querySelector('.screen2').classList.add('active');
             if (tg) tg.MainButton.hide();
         });
 
+        // Кнопка "Назад"
         document.querySelector('.back-btn').addEventListener('click', function() {
             document.querySelector('.screen2').classList.remove('active');
             document.querySelector('.screen1').classList.add('active');
         });
 
+        // Выбор ОС
         document.querySelectorAll('.os-button').forEach(btn => {
             btn.addEventListener('click', function() {
                 const os = this.dataset.os;
@@ -743,7 +724,6 @@
                 }));
             }
             
-            // Открытие обычной ссылки
             const link = document.createElement('a');
             link.href = url;
             link.target = '_blank';
@@ -753,34 +733,57 @@
             document.body.removeChild(link);
         });
 
-        // 🔥 КРИТИЧЕСКИ ВАЖНЫЙ ИСПРАВЛЕННЫЙ ОБРАБОТЧИК
+        // 🔥 ОБРАБОТЧИК ПОДПИСКИ (с реальными серверами)
         document.getElementById('subscribe-btn').addEventListener('click', function() {
             const activeOs = document.querySelector('.os-button.active').dataset.os;
-            
-            // Получаем конфиг из URL
             const config = getConfigFromUrl();
             
             if (!config || !config.startsWith('ss://')) {
-                console.error('Неверный конфиг:', config);
                 if (tg) {
-                    tg.showAlert('❌ Ошибка: неверный формат конфига. Обратитесь к администратору.');
+                    tg.showAlert('❌ Ошибка: конфиг не найден. Попробуйте снова через бота.');
                 } else {
-                    alert('❌ Ошибка: неверный формат конфига');
+                    alert('❌ Ошибка: конфиг не найден. Попробуйте снова через бота.');
                 }
                 return;
             }
+            
+            // Реальные серверы (можно изменить под ваши нужды)
+            const servers = [
+                { country: "Finland", flag: "🇫🇮", status: "VLESS" },
+            ];
+            
+            // Формируем информацию для Happ
+            const name = "DedVPN";  // Название подписки
+            const traffic = "0B/93.1GB";  // Трафик
+            const expiration = "20.02.2026";  // Дата истечения
+            
+            // Формируем список серверов
+            const serversList = servers.map(server => 
+                `${server.flag} ${server.country}\n${server.status}`
+            ).join('\n');
+            
+            // Кодируем для Happ
+            const encodedConfig = encodeURIComponent(config);
+            const encodedName = encodeURIComponent(name);
+            const encodedTraffic = encodeURIComponent(traffic);
+            const encodedExpiration = encodeURIComponent(expiration);
+            const encodedServers = encodeURIComponent(serversList);
+            
+            // Формируем финальную ссылку
+            const happUrl = `happ://subscribe?url=${encodedConfig}#${encodedName}%0A${encodedTraffic}%0A${encodedExpiration}%0A${encodedServers}`;
             
             // Отправляем данные в бот
             if (tg) {
                 tg.sendData(JSON.stringify({ 
                     action: 'subscribe', 
                     os: activeOs,
-                    config: config
+                    config: config,
+                    servers: servers
                 }));
             }
             
-            // Открываем Happ с правильным форматом
-            const success = openHappWithConfig(config);
+            // Открываем Happ
+            const success = openHappWithConfig(happUrl);
             
             if (success) {
                 if (tg) {
@@ -793,6 +796,7 @@
             }
         });
 
+        // Альтернативное подключение
         document.getElementById('alt-link').addEventListener('click', function() {
             if (tg) {
                 tg.sendData(JSON.stringify({ action: 'alt_connect' }));
@@ -800,6 +804,7 @@
             window.open('https://bebronuxaye.github.io/dedvpn-web/', '_blank');
         });
 
+        // Закрытие Web App
         document.querySelectorAll('.close-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 if (tg && tg.close) {
@@ -808,10 +813,11 @@
             });
         });
         
-        // 🔍 Автоматическая проверка при загрузке (для отладки)
+        // Для отладки
         console.log('Конфиг из URL:', getConfigFromUrl());
     });
 </script>
 </body>
 </html>
+
 
