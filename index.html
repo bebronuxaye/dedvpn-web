@@ -653,19 +653,16 @@
             let config = params.get('config');
             if (!config) return null;
             
-            // Декодируем один раз
             try {
                 config = decodeURIComponent(config);
-            } catch (e) {
-                // Если не декодируется — оставляем как есть
-            }
+            } catch (e) {}
             
             return config.trim() || null;
         }
 
         // Копирование в буфер обмена
         function copyToClipboard(text) {
-            if (navigator.clipboard) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
                 return navigator.clipboard.writeText(text);
             }
             const textarea = document.createElement('textarea');
@@ -725,7 +722,7 @@
             }
         });
 
-        // 🔥 КНОПКА "ДОБАВИТЬ ПОДПИСКУ" (безопасный способ)
+        // 🔥 КНОПКА "ДОБАВИТЬ ПОДПИСКУ" (с флагами в названии)
         document.getElementById('subscribe-btn')?.addEventListener('click', function() {
             const config = getConfigFromUrl();
             
@@ -739,19 +736,11 @@
                 return;
             }
             
-            // 🔑 ГАРАНТИРОВАННО исправляем порт на 443
+            // Гарантируем порт 443
             let fixedConfig = config.replace(/:(\d+)([^0-9]|$)/, ':443$2');
             
-            // Если нет # в конце, добавляем
-            if (!fixedConfig.includes('#')) {
-                fixedConfig += '#DedVPN-' + Date.now().toString(36).slice(-6);
-            }
-            
-            // Формируем ссылку ДЛЯ КОПИРОВАНИЯ (чистый ss:// URI)
-            const copyUrl = fixedConfig;
-            
-            // Копируем в буфер
-            copyToClipboard(copyUrl).then(() => {
+            // Копируем ЧИСТУЮ ссылку ss:// (без happ://subscribe)
+            copyToClipboard(fixedConfig).then(() => {
                 if (tg) {
                     tg.showAlert('✅ ССЫЛКА СКОПИРОВАНА!\n\n1. Закройте это окно\n2. Откройте Happ Proxy\n3. Нажмите "+" → "Import from clipboard"\n4. Подключитесь к серверу');
                 } else {
@@ -778,6 +767,7 @@
 </script>
 </body>
 </html>
+
 
 
 
