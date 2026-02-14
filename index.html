@@ -646,13 +646,25 @@
             document.body.style.color = tg.textColor || '#ffffff';
         }
 
-        // Получение конфига из URL
+        // Получение конфига из URL (улучшенная версия)
         function getConfigFromUrl() {
+            // Способ 1: через URLSearchParams
             const params = new URLSearchParams(window.location.search);
-            return params.get('config')?.trim() || null;
+            let config = params.get('config');
+            
+            // Способ 2: ручной парсинг (на случай, если URLSearchParams не сработал)
+            if (!config) {
+                const match = window.location.search.match(/config=([^&]*)/);
+                if (match && match[1]) {
+                    config = decodeURIComponent(match[1]);
+                }
+            }
+            
+            // Убираем пробелы и проверяем
+            return config ? config.trim() : null;
         }
 
-        // Открытие Happ с правильным форматом
+        // Открытие Happ
         function openHappWithConfig(happUrl) {
             console.log('Happ URL:', happUrl);
             
@@ -661,18 +673,6 @@
                 return true;
             } catch (e) {
                 console.error('Ошибка при открытии Happ:', e);
-            }
-            
-            try {
-                const link = document.createElement('a');
-                link.href = happUrl;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                return true;
-            } catch (e) {
-                console.error('Ошибка при создании ссылки:', e);
             }
             
             return false;
@@ -733,29 +733,44 @@
             document.body.removeChild(link);
         });
 
-        // 🔥 ОБРАБОТЧИК ПОДПИСКИ (с реальными серверами)
+        // 🔥 ОБРАБОТЧИК ПОДПИСКИ (с отладкой)
         document.getElementById('subscribe-btn').addEventListener('click', function() {
             const activeOs = document.querySelector('.os-button.active').dataset.os;
             const config = getConfigFromUrl();
             
-            if (!config || !config.startsWith('ss://')) {
+            console.log('Полученный конфиг:', config);
+            console.log('Начинается с ss://:', config?.startsWith('ss://'));
+            
+            // 🔴 КРИТИЧЕСКАЯ ПРОВЕРКА
+            if (!config) {
+                const errorMsg = '❌ Ошибка: конфиг не найден в URL!\n\nURL: ' + window.location.href + '\n\nПопробуйте снова через бота.';
                 if (tg) {
-                    tg.showAlert('❌ Ошибка: конфиг не найден. Попробуйте снова через бота.');
+                    tg.showAlert(errorMsg);
                 } else {
-                    alert('❌ Ошибка: конфиг не найден. Попробуйте снова через бота.');
+                    alert(errorMsg);
                 }
                 return;
             }
             
-            // Реальные серверы (можно изменить под ваши нужды)
+            if (!config.startsWith('ss://')) {
+                const errorMsg = '❌ Ошибка: неверный формат конфига!\nПолучено: ' + config + '\n\nДолжно начинаться с "ss://"';
+                if (tg) {
+                    tg.showAlert(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+                return;
+            }
+            
+            // Серверы
             const servers = [
                 { country: "Finland", flag: "🇫🇮", status: "VLESS" },
             ];
             
-            // Формируем информацию для Happ
-            const name = "DedVPN";  // Название подписки
-            const traffic = "0B/93.1GB";  // Трафик
-            const expiration = "20.02.2026";  // Дата истечения
+            // Информация для Happ
+            const name = "DedVPN";
+            const traffic = "0B/93.1GB";
+            const expiration = "20.02.2026";
             
             // Формируем список серверов
             const serversList = servers.map(server => 
@@ -791,7 +806,7 @@
                 }
             } else {
                 if (tg) {
-                    tg.showAlert('⚠️ Happ не открылся. Убедитесь, что приложение установлено и повторите попытку.');
+                    tg.showAlert('⚠️ Happ не открылся. Убедитесь, что приложение установлено.');
                 }
             }
         });
@@ -813,11 +828,16 @@
             });
         });
         
-        // Для отладки
+        // 🔍 Отладка при загрузке
+        console.log('=== ОТЛАДКА ===');
+        console.log('Полный URL:', window.location.href);
+        console.log('Search params:', window.location.search);
         console.log('Конфиг из URL:', getConfigFromUrl());
+        console.log('================');
     });
 </script>
 </body>
 </html>
+
 
 
