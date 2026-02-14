@@ -646,34 +646,55 @@
             document.body.style.color = tg.textColor || '#ffffff';
         }
 
-        // Получение конфига из URL (с защитой от двойного кодирования)
+        // Получение конфига из URL (с полной защитой)
         function getConfigFromUrl() {
-            // Способ 1: через URLSearchParams
+            // Проверяем, есть ли конфиг в URL
             const params = new URLSearchParams(window.location.search);
             let config = params.get('config');
             
-            // Способ 2: ручной парсинг (на случай, если URLSearchParams не сработал)
-            if (!config) {
-                const match = window.location.search.match(/config=([^&]*)/);
-                if (match && match[1]) {
-                    config = decodeURIComponent(match[1]);
+            // Если конфиг найден, обрабатываем его
+            if (config) {
+                console.log('Конфиг найден в URL, исходное значение:', config);
+                
+                // Пытаемся раскодировать
+                try {
+                    // Первое декодирование
+                    let decodedConfig = decodeURIComponent(config);
+                    
+                    // Проверяем, нужно ли второе декодирование
+                    if (decodedConfig.includes('%25')) {
+                        console.log('Обнаружено двойное кодирование. Декодируем ещё раз.');
+                        decodedConfig = decodeURIComponent(decodedConfig);
+                    }
+                    
+                    console.log('Результат декодирования:', decodedConfig);
+                    
+                    // Проверяем формат
+                    if (decodedConfig.startsWith('ss://')) {
+                        return decodedConfig.trim();
+                    }
+                } catch (e) {
+                    console.error('Ошибка при декодировании:', e);
                 }
             }
             
-            // Защита от двойного кодирования
-            if (config && config.includes('%25')) {
-                // %25 = % (закодированный процент)
-                // Если видим %25, значит строка закодирована дважды
-                config = decodeURIComponent(decodeURIComponent(config));
-            } else if (config) {
-                config = decodeURIComponent(config);
+            // Если не получилось, пытаемся найти вручную
+            const match = window.location.search.match(/config=([^&]+)/);
+            if (match && match[1]) {
+                try {
+                    let decodedConfig = decodeURIComponent(match[1]);
+                    if (decodedConfig.startsWith('ss://')) {
+                        return decodedConfig.trim();
+                    }
+                } catch (e) {
+                    console.error('Ошибка при ручном декодировании:', e);
+                }
             }
             
-            // Убираем пробелы и проверяем
-            return config ? config.trim() : null;
+            return null;
         }
 
-        // Открытие Happ с правильным форматом
+        // Открытие Happ
         function openHappWithConfig(happUrl) {
             console.log('Happ URL:', happUrl);
             
@@ -682,18 +703,6 @@
                 return true;
             } catch (e) {
                 console.error('Ошибка при открытии Happ:', e);
-            }
-            
-            try {
-                const link = document.createElement('a');
-                link.href = happUrl;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                return true;
-            } catch (e) {
-                console.error('Ошибка при создании ссылки:', e);
             }
             
             return false;
@@ -754,18 +763,20 @@
             document.body.removeChild(link);
         });
 
-        // 🔥 ОБРАБОТЧИК ПОДПИСКИ (с серверами и защитой от ошибок)
+        // 🔥 ОБРАБОТЧИК ПОДПИСКИ (с полной отладкой)
         document.getElementById('subscribe-btn').addEventListener('click', function() {
             const activeOs = document.querySelector('.os-button.active').dataset.os;
             const config = getConfigFromUrl();
             
             console.log('=== ПОДПИСКА ===');
             console.log('Полученный конфиг:', config);
-            console.log('Начинается с ss://:', config?.startsWith('ss://'));
             
             // 🔴 КРИТИЧЕСКАЯ ПРОВЕРКА
             if (!config) {
-                const errorMsg = '❌ Ошибка: конфиг не найден в URL!\n\nURL: ' + window.location.href + '\n\nПопробуйте снова через бота.';
+                const errorMsg = '❌ Ошибка: конфиг не найден в URL!\n\n' + 
+                                '1. Проверьте, что бот правильно передаёт конфиг\n' +
+                                '2. Убедитесь, что URL содержит параметр config\n' +
+                                '3. Проверьте логи бота';
                 console.error('Конфиг не найден');
                 if (tg) {
                     tg.showAlert(errorMsg);
@@ -776,7 +787,10 @@
             }
             
             if (!config.startsWith('ss://')) {
-                const errorMsg = '❌ Ошибка: неверный формат конфига!\nПолучено: ' + config.substring(0, 50) + '...\n\nДолжно начинаться с "ss://"';
+                const errorMsg = '❌ Ошибка: неверный формат конфига!\n\n' +
+                                'Получено: ' + config.substring(0, 50) + '...\n\n' +
+                                'Должно начинаться с "ss://"\n\n' +
+                                'Возможная причина: двойное кодирование конфига';
                 console.error('Неверный формат конфига');
                 if (tg) {
                     tg.showAlert(errorMsg);
@@ -786,7 +800,7 @@
                 return;
             }
             
-            // 🌍 СПИСОК СЕРВЕРОВ (можно изменить под ваши нужды)
+            // 🌍 СПИСОК СЕРВЕРОВ
             const servers = [
                 { country: "Netherlands", flag: "🇳🇱", status: "VLESS" },
                 { country: "Finland", flag: "🇫🇮", status: "VLESS" },
@@ -801,7 +815,6 @@
             const expiration = "20.02.2026";
             
             // Формируем список серверов
-            // Каждый сервер: "🇳🇱 Netherlands\nVLESS"
             const serversList = servers.map(server => 
                 `${server.flag} ${server.country}\n${server.status}`
             ).join('\n');
@@ -815,8 +828,7 @@
             const encodedExpiration = encodeURIComponent(expiration);
             const encodedServers = encodeURIComponent(serversList);
             
-            // Формируем финальную ссылку для Happ
-            // Формат: happ://subscribe?url=КОНФИГ#НАЗВАНИЕ%0AТРАФИК%0AДАТА%0AСЕРВЕРЫ
+            // Формируем финальную ссылку
             const happUrl = `happ://subscribe?url=${encodedConfig}#${encodedName}%0A${encodedTraffic}%0A${encodedExpiration}%0A${encodedServers}`;
             
             console.log('Финальный Happ URL:', happUrl);
@@ -872,6 +884,7 @@
 </script>
 </body>
 </html>
+
 
 
 
