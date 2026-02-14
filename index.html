@@ -646,7 +646,7 @@
             document.body.style.color = tg.textColor || '#ffffff';
         }
 
-        // Получение конфига из URL (улучшенная версия)
+        // Получение конфига из URL (с защитой от двойного кодирования)
         function getConfigFromUrl() {
             // Способ 1: через URLSearchParams
             const params = new URLSearchParams(window.location.search);
@@ -660,11 +660,20 @@
                 }
             }
             
+            // Защита от двойного кодирования
+            if (config && config.includes('%25')) {
+                // %25 = % (закодированный процент)
+                // Если видим %25, значит строка закодирована дважды
+                config = decodeURIComponent(decodeURIComponent(config));
+            } else if (config) {
+                config = decodeURIComponent(config);
+            }
+            
             // Убираем пробелы и проверяем
             return config ? config.trim() : null;
         }
 
-        // Открытие Happ
+        // Открытие Happ с правильным форматом
         function openHappWithConfig(happUrl) {
             console.log('Happ URL:', happUrl);
             
@@ -673,6 +682,18 @@
                 return true;
             } catch (e) {
                 console.error('Ошибка при открытии Happ:', e);
+            }
+            
+            try {
+                const link = document.createElement('a');
+                link.href = happUrl;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                return true;
+            } catch (e) {
+                console.error('Ошибка при создании ссылки:', e);
             }
             
             return false;
@@ -733,17 +754,19 @@
             document.body.removeChild(link);
         });
 
-        // 🔥 ОБРАБОТЧИК ПОДПИСКИ (с отладкой)
+        // 🔥 ОБРАБОТЧИК ПОДПИСКИ (с серверами и защитой от ошибок)
         document.getElementById('subscribe-btn').addEventListener('click', function() {
             const activeOs = document.querySelector('.os-button.active').dataset.os;
             const config = getConfigFromUrl();
             
+            console.log('=== ПОДПИСКА ===');
             console.log('Полученный конфиг:', config);
             console.log('Начинается с ss://:', config?.startsWith('ss://'));
             
             // 🔴 КРИТИЧЕСКАЯ ПРОВЕРКА
             if (!config) {
                 const errorMsg = '❌ Ошибка: конфиг не найден в URL!\n\nURL: ' + window.location.href + '\n\nПопробуйте снова через бота.';
+                console.error('Конфиг не найден');
                 if (tg) {
                     tg.showAlert(errorMsg);
                 } else {
@@ -753,7 +776,8 @@
             }
             
             if (!config.startsWith('ss://')) {
-                const errorMsg = '❌ Ошибка: неверный формат конфига!\nПолучено: ' + config + '\n\nДолжно начинаться с "ss://"';
+                const errorMsg = '❌ Ошибка: неверный формат конфига!\nПолучено: ' + config.substring(0, 50) + '...\n\nДолжно начинаться с "ss://"';
+                console.error('Неверный формат конфига');
                 if (tg) {
                     tg.showAlert(errorMsg);
                 } else {
@@ -762,20 +786,27 @@
                 return;
             }
             
-            // Серверы
+            // 🌍 СПИСОК СЕРВЕРОВ (можно изменить под ваши нужды)
             const servers = [
+                { country: "Netherlands", flag: "🇳🇱", status: "VLESS" },
                 { country: "Finland", flag: "🇫🇮", status: "VLESS" },
+                { country: "Czech Republic", flag: "🇨🇿", status: "VLESS" },
+                { country: "Poland", flag: "🇵🇱", status: "VLESS" },
+                { country: "Germany", flag: "🇩🇪", status: "VLESS" }
             ];
             
             // Информация для Happ
             const name = "DedVPN";
-            const traffic = "0B/999GB";
-            const expiration = "20.02.2099";
+            const traffic = "0B/93.1GB";
+            const expiration = "20.02.2026";
             
             // Формируем список серверов
+            // Каждый сервер: "🇳🇱 Netherlands\nVLESS"
             const serversList = servers.map(server => 
                 `${server.flag} ${server.country}\n${server.status}`
             ).join('\n');
+            
+            console.log('Список серверов:', serversList);
             
             // Кодируем для Happ
             const encodedConfig = encodeURIComponent(config);
@@ -784,8 +815,11 @@
             const encodedExpiration = encodeURIComponent(expiration);
             const encodedServers = encodeURIComponent(serversList);
             
-            // Формируем финальную ссылку
+            // Формируем финальную ссылку для Happ
+            // Формат: happ://subscribe?url=КОНФИГ#НАЗВАНИЕ%0AТРАФИК%0AДАТА%0AСЕРВЕРЫ
             const happUrl = `happ://subscribe?url=${encodedConfig}#${encodedName}%0A${encodedTraffic}%0A${encodedExpiration}%0A${encodedServers}`;
+            
+            console.log('Финальный Happ URL:', happUrl);
             
             // Отправляем данные в бот
             if (tg) {
@@ -838,6 +872,7 @@
 </script>
 </body>
 </html>
+
 
 
 
