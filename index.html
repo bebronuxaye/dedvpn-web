@@ -642,249 +642,209 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tg = window.Telegram?.WebApp;
+   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tg = window.Telegram?.WebApp;
 
-            if (tg) {
-                tg.ready();
-                tg.expand();
-                document.body.style.backgroundColor = tg.backgroundColor || '#000000';
-                document.body.style.color = tg.textColor || '#ffffff';
-            }
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            document.body.style.backgroundColor = tg.backgroundColor || '#000000';
+            document.body.style.color = tg.textColor || '#ffffff';
+        }
 
-            // Получение и декодирование конфига из параметров URL
-            function getConfigFromUrl() {
-                const urlParams = new URLSearchParams(window.location.search);
-                let config = urlParams.get('config');
+        // Получение и декодирование конфига из параметров URL
+        function getConfigFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let config = urlParams.get('config');
+            
+            // Декодируем, если закодировано
+            if (config) {
+                try {
+                    // Сначала пробуем стандартный декод
+                    config = decodeURIComponent(config);
+                } catch (e) {
+                    console.warn('Standard decode failed, trying raw:', e);
+                }
                 
-                // Декодируем, если закодировано
-                if (config) {
+                // Если всё ещё закодировано (двойное кодирование)
+                if (config.includes('%')) {
                     try {
-                        // Сначала пробуем стандартный декод
                         config = decodeURIComponent(config);
                     } catch (e) {
-                        console.warn('Standard decode failed, trying raw:', e);
-                    }
-                    
-                    // Если всё ещё закодировано (двойное кодирование)
-                    if (config.includes('%')) {
-                        try {
-                            config = decodeURIComponent(config);
-                        } catch (e) {
-                            console.warn('Double decode failed:', e);
-                        }
+                        console.warn('Double decode failed:', e);
                     }
                 }
-                
-                return config;
             }
-
-            // Безопасное открытие ссылок
-            function openUrlSafely(url) {
-                if (!url) {
-                    showAlert('❌ Ошибка: ссылка не найдена');
-                    return;
-                }
-
-                console.log('Trying to open URL:', url);
-                
-                // Метод 1: Прямой редирект
-                try {
-                    window.location.href = url;
-                    console.log('Method 1 (direct) executed');
-                    return true;
-                } catch (e) {
-                    console.error('Method 1 failed:', e);
-                }
-                
-                // Метод 2: Создание скрытой ссылки
-                try {
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.target = '_blank';
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    console.log('Method 2 (hidden link) executed');
-                    return true;
-                } catch (e) {
-                    console.error('Method 2 failed:', e);
-                }
-                
-                // Метод 3: window.open (ограничен браузерами)
-                try {
-                    window.open(url, '_blank');
-                    console.log('Method 3 (window.open) executed');
-                    return true;
-                } catch (e) {
-                    console.error('Method 3 failed:', e);
-                }
-                
-                return false;
-            }
-
-            // Универсальное уведомление
-            function showAlert(message) {
-                if (tg) {
-                    tg.showAlert(message);
-                } else {
-                    alert(message);
-                }
-            }
-
-            // Отладка для разработчика
-            function showDebugInfo(message) {
-                const debugEl = document.getElementById('debug-info');
-                if (debugEl) {
-                    debugEl.textContent = `DEBUG: ${message}`;
-                    debugEl.style.display = 'block';
-                    console.log('DEBUG:', message);
-                }
-            }
-
-            // Кнопка "Начать пользоваться VPN"
-            document.getElementById('start-vpn').addEventListener('click', function() {
-                document.querySelector('.screen1').classList.remove('active');
-                document.querySelector('.screen2').classList.add('active');
-                if (tg) tg.MainButton.hide();
-                
-                // Показываем отладочную информацию при разработке
-                const config = getConfigFromUrl();
-                showDebugInfo(`Конфиг из URL: ${config ? config.substring(0, 50) + '...' : 'НЕТ'}`);
-            });
-
-            // Кнопка "Назад"
-            document.querySelector('.back-btn').addEventListener('click', function() {
-                document.querySelector('.screen2').classList.remove('active');
-                document.querySelector('.screen1').classList.add('active');
-            });
-
-            // Выбор ОС
-            document.querySelectorAll('.os-button').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const os = this.dataset.os;
-                    document.querySelectorAll('.os-button').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    if (tg) {
-                        tg.sendData(JSON.stringify({ action: 'os_selected', os: os }));
-                    }
-                });
-            });
-
-            // Скачать приложение
-            document.getElementById('download-btn').addEventListener('click', function() {
-                const activeOs = document.querySelector('.os-button.active').dataset.os;
-                
-                const downloadUrls = {
-                    ios: 'https://apps.apple.com/app/happ-proxy/id6446050905',
-                    android: 'https://github.com/Happ-proxy/happ-android/releases/latest',
-                    windows: 'https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe',
-                    macos: 'https://github.com/Happ-proxy/happ-desktop/releases/latest/download/Happ.dmg'
-                };
-                
-                const url = downloadUrls[activeOs];
-                
-                if (tg) {
-                    tg.sendData(JSON.stringify({ 
-                        action: 'download', 
-                        os: activeOs,
-                        url: url
-                    }));
-                }
-                
-                openUrlSafely(url);
-            });
-
-            // 🔥 КНОПКА "ДОБАВИТЬ ПОДПИСКУ" — исправленная версия
-            document.getElementById('subscribe-btn').addEventListener('click', function() {
-                const activeOs = document.querySelector('.os-button.active').dataset.os;
-                let happSubscribeUrl = getConfigFromUrl();
-                
-                // Отладка
-                console.log('=== SUBSCRIBE DEBUG ===');
-                console.log('Raw URL params:', window.location.search);
-                console.log('Config from URL:', happSubscribeUrl);
-                
-                // Если конфига нет — используем дефолтный
-                if (!happSubscribeUrl || happSubscribeUrl.trim() === '') {
-                    happSubscribeUrl = 'happ://subscribe?url=http://91.108.241.69/servers.txt';
-                    console.log('Using default URL:', happSubscribeUrl);
-                }
-                
-                // Проверка валидности
-                if (!happSubscribeUrl.startsWith('happ://') && !happSubscribeUrl.startsWith('ss://')) {
-                    console.error('Invalid URL format:', happSubscribeUrl);
-                    showAlert('❌ Неверный формат ссылки. Обратитесь в поддержку.');
-                    return;
-                }
-                
-                // Отправка данных в бот
-                if (tg) {
-                    tg.sendData(JSON.stringify({ 
-                        action: 'subscribe',
-                        os: activeOs,
-                        url: happSubscribeUrl
-                    }));
-                }
-                
-                // Попытка открыть Happ
-                const success = openUrlSafely(happSubscribeUrl);
-                
-                if (success) {
-                    showAlert('✅ Открываем Happ...\n\nЕсли приложение не открылось:\n1. Установите Happ Proxy\n2. Нажмите "Скопировать ссылку"\n3. Вставьте вручную в Happ');
-                } else {
-                    showAlert('⚠️ Не удалось открыть Happ автоматически.\nНажмите "Скопировать ссылку" и вставьте её вручную.');
-                }
-            });
-
-            // Кнопка "Скопировать ссылку" — резервный метод
-            document.getElementById('copy-btn').addEventListener('click', function() {
-                let happSubscribeUrl = getConfigFromUrl();
-                if (!happSubscribeUrl || happSubscribeUrl.trim() === '') {
-                    happSubscribeUrl = 'happ://subscribe?url=http://91.108.241.69/servers.txt';
-                }
-                
-                // Декодируем если нужно
-                try {
-                    happSubscribeUrl = decodeURIComponent(happSubscribeUrl);
-                } catch (e) {}
-                
-                // Копирование в буфер
-                navigator.clipboard.writeText(happSubscribeUrl).then(() => {
-                    showAlert('✅ Ссылка скопирована!\n\n1. Откройте Happ Proxy\n2. Нажмите "+" → "Import from clipboard"\n3. Выберите любой сервер и подключитесь');
-                }).catch(err => {
-                    console.error('Copy failed:', err);
-                    showAlert('❌ Не удалось скопировать. Разрешите доступ к буферу обмена.');
-                });
-            });
-
-            // Альтернативное подключение
-            document.getElementById('alt-link').addEventListener('click', function() {
-                if (tg) {
-                    tg.sendData(JSON.stringify({ action: 'alt_connect' }));
-                }
-                openUrlSafely('https://bebronuxaye.github.io/dedvpn-web/');
-            });
-
-            // Кнопки закрытия
-            document.querySelectorAll('.close-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (tg && tg.close) {
-                        tg.close();
-                    }
-                });
-            });
             
-            // Авто-отладка при загрузке
-            console.log('=== WEB APP DEBUG ===');
-            console.log('Telegram WebApp:', tg ? 'Available' : 'NOT AVAILABLE');
-            console.log('Full URL:', window.location.href);
-            console.log('Config param:', getConfigFromUrl());
+            return config;
+        }
+
+        // Безопасное открытие ссылок
+        function openUrlSafely(url) {
+            if (!url) {
+                showAlert('❌ Ошибка: ссылка не найдена');
+                return;
+            }
+
+            console.log('Trying to open URL:', url);
+            
+            // Метод 1: Прямой редирект
+            try {
+                window.location.href = url;
+                console.log('Method 1 (direct) executed');
+                return true;
+            } catch (e) {
+                console.error('Method 1 failed:', e);
+            }
+            
+            // Метод 2: Создание скрытой ссылки
+            try {
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = '_blank';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log('Method 2 (hidden link) executed');
+                return true;
+            } catch (e) {
+                console.error('Method 2 failed:', e);
+            }
+            
+            // Метод 3: window.open (ограничен браузерами)
+            try {
+                window.open(url, '_blank');
+                console.log('Method 3 (window.open) executed');
+                return true;
+            } catch (e) {
+                console.error('Method 3 failed:', e);
+            }
+            
+            return false;
+        }
+
+        // Универсальное уведомление
+        function showAlert(message) {
+            if (tg) {
+                tg.showAlert(message);
+            } else {
+                alert(message);
+            }
+        }
+
+        // Кнопка "Начать пользоваться VPN"
+        document.getElementById('start-vpn').addEventListener('click', function() {
+            document.querySelector('.screen1').classList.remove('active');
+            document.querySelector('.screen2').classList.add('active');
+            if (tg) tg.MainButton.hide();
         });
-    </script>
+
+        // Кнопка "Назад"
+        document.querySelector('.back-btn').addEventListener('click', function() {
+            document.querySelector('.screen2').classList.remove('active');
+            document.querySelector('.screen1').classList.add('active');
+        });
+
+        // Выбор ОС
+        document.querySelectorAll('.os-button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const os = this.dataset.os;
+                document.querySelectorAll('.os-button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                if (tg) {
+                    tg.sendData(JSON.stringify({ action: 'os_selected', os: os }));
+                }
+            });
+        });
+
+        // Скачать приложение
+        document.getElementById('download-btn').addEventListener('click', function() {
+            const activeOs = document.querySelector('.os-button.active').dataset.os;
+            
+            const downloadUrls = {
+                ios: 'https://apps.apple.com/app/happ-proxy/id6446050905',
+                android: 'https://github.com/Happ-proxy/happ-android/releases/latest',
+                windows: 'https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe',
+                macos: 'https://github.com/Happ-proxy/happ-desktop/releases/latest/download/Happ.dmg'
+            };
+            
+            const url = downloadUrls[activeOs];
+            
+            if (tg) {
+                tg.sendData(JSON.stringify({ 
+                    action: 'download', 
+                    os: activeOs,
+                    url: url
+                }));
+            }
+            
+            openUrlSafely(url);
+        });
+
+        // Кнопка "Скопировать ссылку" — исправленная версия
+        document.getElementById('copy-btn').addEventListener('click', function() {
+            let happSubscribeUrl = getConfigFromUrl();
+            if (!happSubscribeUrl || happSubscribeUrl.trim() === '') {
+                happSubscribeUrl = 'happ://subscribe?url=http://91.108.241.69/servers.txt';
+            }
+            
+            // Декодируем если нужно
+            try {
+                happSubscribeUrl = decodeURIComponent(happSubscribeUrl);
+            } catch (e) {}
+            
+            // Альтернативный метод копирования (работает везде)
+            const textArea = document.createElement('textarea');
+            textArea.value = happSubscribeUrl;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            let success = false;
+            try {
+                success = document.execCommand('copy');
+            } catch (err) {
+                console.error('Copy failed:', err);
+            }
+            
+            document.body.removeChild(textArea);
+            
+            if (success) {
+                showAlert('✅ Ссылка скопирована!\n\n1. Откройте Happ Proxy\n2. Нажмите "+" → "Import from clipboard"\n3. Выберите любой сервер и подключитесь');
+            } else {
+                showAlert('❌ Не удалось скопировать. Разрешите доступ к буферу обмена.');
+            }
+        });
+
+        // Альтернативное подключение
+        document.getElementById('alt-link').addEventListener('click', function() {
+            if (tg) {
+                tg.sendData(JSON.stringify({ action: 'alt_connect' }));
+            }
+            openUrlSafely('https://bebronuxaye.github.io/dedvpn-web/');
+        });
+
+        // Кнопки закрытия
+        document.querySelectorAll('.close-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (tg && tg.close) {
+                    tg.close();
+                }
+            });
+        });
+        
+        // Авто-отладка при загрузке
+        console.log('=== WEB APP DEBUG ===');
+        console.log('Telegram WebApp:', tg ? 'Available' : 'NOT AVAILABLE');
+        console.log('Full URL:', window.location.href);
+        console.log('Config param:', getConfigFromUrl());
+    });
+</script>
 </body>
 </html>
+
 
 
