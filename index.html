@@ -642,7 +642,7 @@
         </div>
     </div>
 
-   <script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         const tg = window.Telegram?.WebApp;
 
@@ -651,33 +651,6 @@
             tg.expand();
             document.body.style.backgroundColor = tg.backgroundColor || '#000000';
             document.body.style.color = tg.textColor || '#ffffff';
-        }
-
-        // Получение и декодирование конфига из параметров URL
-        function getConfigFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            let config = urlParams.get('config');
-            
-            // Декодируем, если закодировано
-            if (config) {
-                try {
-                    // Сначала пробуем стандартный декод
-                    config = decodeURIComponent(config);
-                } catch (e) {
-                    console.warn('Standard decode failed, trying raw:', e);
-                }
-                
-                // Если всё ещё закодировано (двойное кодирование)
-                if (config.includes('%')) {
-                    try {
-                        config = decodeURIComponent(config);
-                    } catch (e) {
-                        console.warn('Double decode failed:', e);
-                    }
-                }
-            }
-            
-            return config;
         }
 
         // Безопасное открытие ссылок
@@ -689,16 +662,13 @@
 
             console.log('Trying to open URL:', url);
             
-            // Метод 1: Прямой редирект
             try {
                 window.location.href = url;
-                console.log('Method 1 (direct) executed');
                 return true;
             } catch (e) {
                 console.error('Method 1 failed:', e);
             }
             
-            // Метод 2: Создание скрытой ссылки
             try {
                 const link = document.createElement('a');
                 link.href = url;
@@ -707,16 +677,13 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                console.log('Method 2 (hidden link) executed');
                 return true;
             } catch (e) {
                 console.error('Method 2 failed:', e);
             }
             
-            // Метод 3: window.open (ограничен браузерами)
             try {
                 window.open(url, '_blank');
-                console.log('Method 3 (window.open) executed');
                 return true;
             } catch (e) {
                 console.error('Method 3 failed:', e);
@@ -759,7 +726,7 @@
             });
         });
 
-        // Скачать приложение
+        // Скачать приложение (исправлены ссылки без пробелов)
         document.getElementById('download-btn').addEventListener('click', function() {
             const activeOs = document.querySelector('.os-button.active').dataset.os;
             
@@ -770,7 +737,7 @@
                 macos: 'https://github.com/Happ-proxy/happ-desktop/releases/latest/download/Happ.dmg'
             };
             
-            const url = downloadUrls[activeOs];
+            const url = downloadUrls[activeOs].trim();
             
             if (tg) {
                 tg.sendData(JSON.stringify({ 
@@ -783,19 +750,12 @@
             openUrlSafely(url);
         });
 
-        // Кнопка "Скопировать ссылку" — исправленная версия
+        // 🔑 КНОПКА "СКОПИРОВАТЬ ССЫЛКУ" — ТОЛЬКО ОДНА ССЫЛКА БЕЗ ПРОБЕЛОВ
         document.getElementById('copy-btn').addEventListener('click', function() {
-            let happSubscribeUrl = getConfigFromUrl();
-            if (!happSubscribeUrl || happSubscribeUrl.trim() === '') {
-                happSubscribeUrl = 'https://dtj-4.atlanta-subs.ru/C_Qn60sH6-Ae2PeP';
-            }
+            // Фиксированная ссылка без пробелов и декодирования
+            const happSubscribeUrl = 'https://dtj-4.atlanta-subs.ru/C_Qn60sH6-Ae2PeP';
             
-            // Декодируем если нужно
-            try {
-                happSubscribeUrl = decodeURIComponent(happSubscribeUrl);
-            } catch (e) {}
-            
-            // Альтернативный метод копирования (работает везде)
+            // Метод копирования (работает везде)
             const textArea = document.createElement('textarea');
             textArea.value = happSubscribeUrl;
             textArea.style.position = 'fixed';
@@ -819,14 +779,6 @@
             }
         });
 
-        // Альтернативное подключение
-        document.getElementById('alt-link').addEventListener('click', function() {
-            if (tg) {
-                tg.sendData(JSON.stringify({ action: 'alt_connect' }));
-            }
-            openUrlSafely('https://bebronuxaye.github.io/dedvpn-web/');
-        });
-
         // Кнопки закрытия
         document.querySelectorAll('.close-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -836,15 +788,15 @@
             });
         });
         
-        // Авто-отладка при загрузке
+        // Отладка при загрузке
         console.log('=== WEB APP DEBUG ===');
         console.log('Telegram WebApp:', tg ? 'Available' : 'NOT AVAILABLE');
         console.log('Full URL:', window.location.href);
-        console.log('Config param:', getConfigFromUrl());
     });
 </script>
 </body>
 </html>
+
 
 
 
